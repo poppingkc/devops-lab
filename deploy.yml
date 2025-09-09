@@ -1,0 +1,20 @@
+- name: Deploy Nginx container with Docker Compose
+  hosts: localhost
+  become: true
+  tasks:
+    - block:
+        - name: Run Docker Compose
+          command: docker compose up -d
+          args:
+            chdir: /home/vagrant/app
+      rescue:
+        - name: Rollback deployment (docker compose down)
+          command: docker compose down
+          args:
+            chdir: /home/vagrant/app
+        - name: Notify rollback occurred
+          debug:
+            msg: "Deployment failed. Rollback triggered."
+      always:
+        - name: Final status check
+          command: docker ps
